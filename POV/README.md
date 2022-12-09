@@ -40,6 +40,8 @@ As of 12/9/2022 it only supports RDP and Storefront connectors.
         * Assign Continuous Testing Account Group
         * Assign All Launchers Group
         * Configure Specified Connector
+* If in Debug mode:
+    * Delete all resources created above
 
 #### Notes
 
