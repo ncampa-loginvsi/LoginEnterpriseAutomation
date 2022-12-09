@@ -28,18 +28,15 @@ As of 12/9/2022 it only supports RDP and Storefront connectors.
     * Application Test
         * Assign Application Testing Account Group
         * Assign All Launchers Group
-        * RDP Connector
-        * Storefront Connector
+        * Configure Specified Connector
     * Load Test
         * Assign Load Testing Account Group
         * Assign All Launchers Group
-        * RDP Connector
-        * Storefront Connector
+        * Configure Specified Connector
     * Continuous Test
         * Assign Continuous Testing Account Group
         * Assign All Launchers Group
-        * RDP Connector
-        * Storefront Connector
+        * Configure Specified Connector
 
 #### Notes
 
