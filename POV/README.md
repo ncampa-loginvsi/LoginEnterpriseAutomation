@@ -10,6 +10,9 @@ As of 12/9/2022 it only supports RDP and Storefront connectors.
 
 # StoreFront target
 .\POC\Scripts\PovSetup.ps1 -Fqdn <YOUR_FQDN> -Token <YOUR_SECRET_TOKEN> -ConnectorType "Storefront" -ServerUrl <MY_STOREFRONT_URL> -TargetResource <MY_STORE_RESOURCE>
+
+# Add -Debug "Y" to remove created resources for easier debugging and development
+.\POC\Scripts\PovSetup.ps1 -Fqdn <YOUR_FQDN> -Token <YOUR_SECRET_TOKEN> -ConnectorType "RDP" -TargetRDPHost <MY_TARGET_HOST> -Debug "Y"
 ```
 
 
