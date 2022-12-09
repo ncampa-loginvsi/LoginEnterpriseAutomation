@@ -1,7 +1,7 @@
 Param(
     [string]$Fqdn,
     [string]$Token,
-    [string]$FilePath = ".\POC\Resources\Accounts.csv",
+    [string]$FilePath = ".\POV\Resources\Accounts.csv",
     [string]$ConnectorType,
     [string]$TargetRDPHost,
     [string]$ServerUrl,
@@ -29,9 +29,9 @@ function Main {
 
     # Import functions from wd
     Write-Host "Start: Beginning function import process..." -ForegroundColor "White"
-    . .\POC\Scripts\API.ps1
+    . .\POV\Scripts\API.ps1
     Write-Host "[DEBUG] API Endpoint commands successfully imported..." -ForegroundColor "Green"
-    . .\POC\Scripts\Helpers.ps1
+    . .\POV\Scripts\Helpers.ps1
     Write-Host "[DEBUG] API Helper functions successfully imported..." -ForegroundColor "Green"
 
     # Confirm connection parameters
