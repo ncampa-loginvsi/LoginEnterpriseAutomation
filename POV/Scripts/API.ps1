@@ -48,6 +48,44 @@ function Get-LeApplications {
 }
 
 # ========================================================================================================================
+# Get Application
+# ========================================================================================================================
+function Get-LeApplication {
+    Param (
+        [string]$ApplicationId
+    )
+
+    # this is only required for older version of PowerShell/.NET
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11
+
+    # WARNING: ignoring SSL/TLS certificate errors is a security risk
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [SSLHandler]::GetSSLHandler()
+
+    $Header = @{
+        "Accept"        = "application/json"
+        "Authorization" = "Bearer $global:token"
+    }
+
+    $Body = @{
+        orderBy   = $orderBy
+        direction = $Direction
+        count     = $Count
+        include   = $Include 
+    } 
+
+    $Parameters = @{
+        Uri         = 'https://' + $global:fqdn + '/publicApi/v5/applications'
+        Headers     = $Header
+        Method      = 'GET'
+        body        = $Body
+        ContentType = 'application/json'
+    }
+
+    $Response = Invoke-RestMethod @Parameters
+    $Response.items 
+}
+
+# ========================================================================================================================
 # Create Account
 # ========================================================================================================================
 function New-LeAccount {
@@ -107,12 +145,13 @@ function New-LeAccountGroup {
         "Authorization" = "Bearer $token"
     }
 
-    $Body = @{
-        type = "Filter"
-        filter = "dummy*"
-        name = $GroupName
-        description = $Description
-    } | ConvertTo-Json
+    $Body = @"
+{
+    "type": "Selection",
+    "name": "$GroupName",
+    "description": "$Description"
+    }
+"@
 
     $Parameters = @{
         Uri         = "https://" + $global:fqdn + "/publicApi/v5/account-groups"
@@ -125,6 +164,45 @@ function New-LeAccountGroup {
     Invoke-RestMethod @Parameters
     $Response.items 
 }
+
+function Add-LeAccountGroupMember {
+    Param (
+        [string]$GroupId,
+        [string]$AccountId
+    )
+
+    # this is only required for older version of PowerShell/.NET
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11
+
+    # WARNING: ignoring SSL/TLS certificate errors is a security risk
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [SSLHandler]::GetSSLHandler()
+
+    $Header = @{
+        "Accept"        = "application/json"
+        "Authorization" = "Bearer $global:token"
+    }
+
+    $Body = @"
+[
+    "$AccountId"
+]
+"@
+
+    $Parameters = @{
+        Uri         = "https://" + $global:fqdn + "/publicApi/v5/account-groups" + "/$GroupId" + "/members"
+        Headers     = $Header
+        Method      = "POST"
+        body        = $Body
+        ContentType = "application/json"
+    }
+    
+    #$Parameters.body
+    $Response = Invoke-RestMethod @Parameters
+    $Response.items 
+        
+    }
+
+
 
 # ========================================================================================================================
 # Create Launcher Group
@@ -146,12 +224,13 @@ function New-LeLauncherGroup {
         "Authorization" = "Bearer $token"
     }
 
-    $Body = @{
-        type = "Filter"
-        filter = "dummy*"
-        name = $GroupName
-        description = $Description
-    } | ConvertTo-Json
+    $Body = @"
+{
+    "type": "Selection",
+    "name": "$GroupName",
+    "description": "$Description"
+    }
+"@
 
     $Parameters = @{
         Uri         = "https://" + $global:fqdn + "/publicApi/v5/launcher-groups"
@@ -414,6 +493,72 @@ function New-LeContinuousTest {
     $Response
 }
 
+# ========================================================================================================================
+# Update Workflow
+# ========================================================================================================================
+function Update-LeWorkflow {
+    Param (
+        [string]$TestId,
+        [string]$ApplicationIds
+    )
+
+    # this is only required for older version of PowerShell/.NET
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11
+
+    # WARNING: ignoring SSL/TLS certificate errors is a security risk
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [SSLHandler]::GetSSLHandler()
+
+    $Header = @{
+        "Accept"        = "application/json"
+        "Authorization" = "Bearer $token"
+    }
+
+    $ExcelId = $ApplicationIds.Substring(0, 36)
+    $PowerpointId = $ApplicationIds.Substring(37, 36)
+    $WordId = $ApplicationIds.Substring(74, 36)
+    
+    $Body = @"
+[        
+    {
+        "type": "AppInvocation",
+        "applicationId": "$ExcelId",
+        "isEnabled": true
+    },
+    {
+        "type": "Delay",
+        "delayInSeconds": "5",
+        "isEnabled": true
+    },
+    {
+        "type": "AppInvocation",
+        "applicationId": "$PowerpointId",
+        "isEnabled": true
+    },
+    {
+        "type": "Delay",
+        "delayInSeconds": "5",
+        "isEnabled": true
+    },
+    {
+        "type": "AppInvocation",
+        "applicationId": "$WordId",
+        "isEnabled": true
+    }
+]
+"@
+
+    $Parameters = @{
+        Uri         = "https://" + $global:fqdn + "/publicApi/v5/tests" + "/$TestId" + "/workload"
+        Headers     = $Header
+        Method      = "POST"
+        body        = $Body
+        ContentType = "application/json"
+    }
+    
+    $Parameters.body
+    $Response = Invoke-RestMethod @Parameters
+    $Response
+}
 
 
 # ========================================================================================================================
