@@ -526,7 +526,7 @@ function Update-LeWorkflow {
     },
     {
         "type": "Delay",
-        "delayInSeconds": "5",
+        "delayInSeconds": 5,
         "isEnabled": true
     },
     {
@@ -536,7 +536,7 @@ function Update-LeWorkflow {
     },
     {
         "type": "Delay",
-        "delayInSeconds": "5",
+        "delayInSeconds": 5,
         "isEnabled": true
     },
     {
@@ -555,10 +555,109 @@ function Update-LeWorkflow {
         ContentType = "application/json"
     }
     
+    
     $Parameters.body
     $Response = Invoke-RestMethod @Parameters
     $Response
 }
+
+# ========================================================================================================================
+# Add Start time Thresholds
+# ========================================================================================================================
+function Update-LeWorkflow {
+    Param (
+        [string]$TestId,
+        [string]$ApplicationId
+    )
+
+    # this is only required for older version of PowerShell/.NET
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11
+
+    # WARNING: ignoring SSL/TLS certificate errors is a security risk
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [SSLHandler]::GetSSLHandler()
+
+    $Header = @{
+        "Accept"        = "application/json"
+        "Authorization" = "Bearer $token"
+    }
+    
+    $Body = @"    
+{
+    "applicationId": "$ApplicationId",
+    "timer": true
+}
+"@
+
+    $Parameters = @{
+        Uri         = "https://" + $global:fqdn + "/publicApi/v5/tests" + "/$TestId" + "/workload"
+        Headers     = $Header
+        Method      = "POST"
+        body        = $Body
+        ContentType = "application/json"
+    }
+    
+    
+    $Parameters.body
+    $Response = Invoke-RestMethod @Parameters
+    $Response
+}
+
+
+# ========================================================================================================================
+# Create SLA Reports
+# ========================================================================================================================
+function New-LeSLAReport {
+    Param (
+        [string]$TestId,
+        [string]$Frequency
+    )
+
+    # this is only required for older version of PowerShell/.NET
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11
+
+    # WARNING: ignoring SSL/TLS certificate errors is a security risk
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [SSLHandler]::GetSSLHandler()
+
+    $Header = @{
+        "Accept"        = "application/json"
+        "Authorization" = "Bearer $token"
+    }
+    
+    $Body = @"
+{
+    "frequency": "$Frequency",
+    "name" : "$Frequency SLA Report",
+    "description": "Get a report from your canaries in the coalmine.",
+    "latencyThreshold": {
+        "isEnabled": true,
+        "value": 5
+    },
+    "loginTimeThreshold": {
+        "isEnabled": true,
+        "value": 40
+    },
+    "notification": {
+        isEnabled: false
+    }
+}
+"@
+
+    $Parameters = @{
+        Uri         = "https://" + $global:fqdn + "/publicApi/v5/tests" + "/$TestId" + "/report-configurations"
+        Headers     = $Header
+        Method      = "POST"
+        body        = $Body
+        ContentType = "application/json"
+    }
+    
+    $Parameters.Uri
+    $Parameters.body
+    $Response = Invoke-RestMethod @Parameters
+    $Response
+}
+
+
+
 
 
 # ========================================================================================================================

@@ -258,21 +258,52 @@ function Update-LeTestWorkflows {
 
     $ApplicationTestId = $TestIds.Substring(0, 36)
     Write-Host "[WORKFLOW] Attempting to update the Application Test workflow..." -ForegroundColor "Yellow"
-    Update-LeWorkflow -TestId $ApplicationTestId -ApplicationIds $SampleAppIds
+    Update-LeWorkflow -TestId $ApplicationTestId -ApplicationIds $SampleAppIds | Out-Null
     Write-Host "[WORKFLOW] Application Test workflow updated..." -ForegroundColor "Green"
 
     $LoadTestId = $TestIds.Substring(37, 36)
     Write-Host "[WORKFLOW] Attempting to update the Load Test workflow..." -ForegroundColor "Yellow"
-    Update-LeWorkflow -TestId $LoadTestId -ApplicationIds $SampleAppIds
+    Update-LeWorkflow -TestId $LoadTestId -ApplicationIds $SampleAppIds | Out-Null
     Write-Host "[WORKFLOW] Load Test workflow updated..." -ForegroundColor "Green"
 
     $ContinuousTestId = $TestIds.Substring(74, 36)
     Write-Host "[WORKFLOW] Attempting to update the Continuous Test workflow..." -ForegroundColor "Yellow"
-    Update-LeWorkflow -TestId $ContinuousTestId -ApplicationIds $SampleAppIds
+    Update-LeWorkflow -TestId $ContinuousTestId -ApplicationIds $SampleAppIds | Out-Null
     Write-Host "[WORKFLOW] Continuous Test workflow updated..." -ForegroundColor "Green"
+}
 
+function Import-LeWorkflowUpdates {
+    param (
+        $TestIds
+    )
+    # Collect Ids for sample out-of-box Applications
+    Write-Host "[WORKFLOW] Attempting to collect sample application Ids..." -ForegroundColor "Yellow"
+    $SampleAppIds = Get-LeApplicationsForTest
+    Write-Host "[WORKFLOW] Sample application Ids collected successfully..." -ForegroundColor "Green"
+
+    # Add workflow to tests
+    Write-Host "[WORKFLOW] Attempting to update Test Workflows..." -ForegroundColor "Yellow"
+    Update-LeTestWorkflows -TestIds $TestIds -ApplicationIds $SampleAppIds
+    Write-Host "[WORKFLOW] Test Workflows updated successfully..." -ForegroundColor "Green"
+}
+
+function Add-LeSLAReports {
+    param (
+        $TestIds
+    )
+
+    $ContinuousTestId = $TestIds[2]
+    Write-Host "[REPORTS] Attempting to add Daily SLA Report..." -ForegroundColor "Yellow"
+    New-LeSLAReport -TestId $ContinuousTestId -Frequency "daily" | Out-Null
+    Write-Host "[REPORTS] Daily SLA Report has been added successfully..." -ForegroundColor "Green"
+
+    Write-Host "[REPORTS] Attempting to add Weekly SLA Report..." -ForegroundColor "Yellow"
+    New-LeSLAReport -TestId $ContinuousTestId -Frequency "weekly" | Out-Null
+    Write-Host "[REPORTS] Weekly SLA Report has been added successfully..." -ForegroundColor "Green"
     
 }
+
+
 
 # ========================================================================================================================
 # Cleanup all Created Resources
@@ -321,4 +352,6 @@ function Debug-Cleanup {
 
 . .\POV\Scripts\API.ps1
 Write-Debug "The module was imported"
+
+#Add-LeSLAReports -TestIds "b4c4b07d-789b-49ad-acc3-f10b007f7725"
 

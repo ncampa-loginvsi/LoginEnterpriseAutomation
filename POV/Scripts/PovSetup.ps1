@@ -48,7 +48,8 @@ function Main {
     Write-Host "[GROUPS] Start: Beginning account groups creation process..." -ForegroundColor "White"
     $AccountGroupIds = Import-AccountGroups
     Write-Host "[GROUPS] End: Account group creation process completed..." -ForegroundColor "White"
-    
+    "-" * 100
+
     Write-Host "[GROUPS] Start: Beginning account group population process..." -ForegroundColor "White"
     Add-LeAccountGroupMembers -AccountIds $AccountIds
     Write-Host "[GROUPS] End: Account Group population process completed..." -ForegroundColor "White"
@@ -62,24 +63,23 @@ function Main {
     "-" * 100
 
     # AppId, LoadId, ContId
-    Write-Host "[TESTS] Attempting to create tests..." -ForegroundColor "White"
+    Write-Host "[TESTS] Start: Beginning Test Creation process..." -ForegroundColor "White"
     $TestIds = Import-Tests -AccountGroupId $AccountGroupIds -LauncherGroupId $LauncherGroupId -ConnectorType $ConnectorType -TargetRDPHost $TargetRDPHost -ServerUrl $ServerUrl -TargetResource $TargetResource
-    Write-Host "[TESTS] End: Tests have been created..." -ForegroundColor "White"
+    Write-Host "[TESTS] End: Tests Creation process completed..." -ForegroundColor "White"
     "-" * 100
 
     # Add sample applications to created tests (Will be replaced to add knowledge worker by default in 4.10)
     Write-Host "[WORKFLOW] Start: Beginnning workflow update process..." -ForegroundColor "White"
-
-    # Collect Ids for sample out-of-box Applications
-    Write-Host "[WORKFLOW] Attempting to collect sample application Ids..." -ForegroundColor "Yellow"
-    $SampleAppIds = Get-LeApplicationsForTest
-    Write-Host "[WORKFLOW] Sample application Ids collected successfully..." -ForegroundColor "Green"
-
-    # Add workflow to tests
-    Update-LeTestWorkflows -TestIds $TestIds -ApplicationIds $SampleAppIds
-    
+    Import-LeWorkflowUpdates -TestIds $TestIds
     Write-Host "[WORKFLOW] End: Workflow update process completed..." -ForegroundColor "White"
     "-" * 100
+
+    # Add SLA Reports
+    Write-Host "[WORKFLOW] Start: Beginnning workflow update process..." -ForegroundColor "White"
+    Add-LeSLAReports -TestIds $TestIds
+    Write-Host "[WORKFLOW] End: Workflow update process completed..." -ForegroundColor "White"
+    "-" * 100
+    
 
 
     if ($Debug -eq "Y") {
