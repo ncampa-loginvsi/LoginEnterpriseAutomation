@@ -38,31 +38,55 @@ function Main {
     Greet-User -ConnectorType $ConnectorType -TargetRDPHost $TargetRDPHost -ServerUrl $ServerUrl -TargetResource $TargetResource
   
     # Import .csv file of accounts into the appliance
+    "-" * 100
     Write-Host "[ACCOUNTS] Start: Beginning account import process..." -ForegroundColor "White"
     $AccountIds = Import-LeAccounts -FilePath $FilePath
     Write-Host "[ACCOUNTS] End: Account import process completed..." -ForegroundColor "White"
+    "-" * 100
 
     # Create empty account groups to add users to
     Write-Host "[GROUPS] Start: Beginning account groups creation process..." -ForegroundColor "White"
     $AccountGroupIds = Import-AccountGroups
-    Write-Host "[GROUPS] End: Account groups have been created..." -ForegroundColor "White"
+    Write-Host "[GROUPS] End: Account group creation process completed..." -ForegroundColor "White"
+    
+    Write-Host "[GROUPS] Start: Beginning account group population process..." -ForegroundColor "White"
+    Add-LeAccountGroupMembers -AccountIds $AccountIds
+    Write-Host "[GROUPS] End: Account Group population process completed..." -ForegroundColor "White"
+    "-" * 100
 
     # Create empty launcher group to add launchers to
     # In 4.10 this will no longer be needed, should be a default group for new installations
     Write-Host "[GROUPS] Start: Beginning launcher group creation process..." -ForegroundColor "White"
     $LauncherGroupId = Import-LeLauncherGroup -LauncherGroupName "All Launchers" -Description "This is a group containing all launchers."
-    Write-Host "[GROUPS] End: Launcher groups have been created..." -ForegroundColor "White"
+    Write-Host "[GROUPS] End: Launcher groups creation process completed..." -ForegroundColor "White"
+    "-" * 100
 
     # AppId, LoadId, ContId
-    Write-Host "[CLEANUP] Attempting to create tests..." -ForegroundColor "White"
+    Write-Host "[TESTS] Attempting to create tests..." -ForegroundColor "White"
     $TestIds = Import-Tests -AccountGroupId $AccountGroupIds -LauncherGroupId $LauncherGroupId -ConnectorType $ConnectorType -TargetRDPHost $TargetRDPHost -ServerUrl $ServerUrl -TargetResource $TargetResource
     Write-Host "[TESTS] End: Tests have been created..." -ForegroundColor "White"
-   
+    "-" * 100
+
+    # Add sample applications to created tests (Will be replaced to add knowledge worker by default in 4.10)
+    Write-Host "[WORKFLOW] Start: Beginnning workflow update process..." -ForegroundColor "White"
+
+    # Collect Ids for sample out-of-box Applications
+    Write-Host "[WORKFLOW] Attempting to collect sample application Ids..." -ForegroundColor "Yellow"
+    $SampleAppIds = Get-LeApplicationsForTest
+    Write-Host "[WORKFLOW] Sample application Ids collected successfully..." -ForegroundColor "Green"
+
+    # Add workflow to tests
+    Update-LeTestWorkflows -TestIds $TestIds -ApplicationIds $SampleAppIds
+    
+    Write-Host "[WORKFLOW] End: Workflow update process completed..." -ForegroundColor "White"
+    "-" * 100
+
 
     if ($Debug -eq "Y") {
         Write-Host "[CLEANUP] Start: Beginning cleanup process..." -ForegroundColor "White"
         Debug-Cleanup -AccountIds $AccountIds -AccountGroupIds $AccountGroupIds -LauncherGroupId $LauncherGroupId -TestIds $TestIds
         Write-Host "[CLEANUP] End: Cleanup process has been completed..." -ForegroundColor "White"
+        "-" * 100
     } 
     
     Write-Host "[DEBUG] Script has completed. Enjoy your proof of concept..." -ForegroundColor "Green"

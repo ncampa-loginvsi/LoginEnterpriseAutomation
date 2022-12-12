@@ -29,8 +29,10 @@ function Import-LeAccounts {
     )
     # Import the csv
     Write-Host "[FILE] Attempting to import file..." -ForegroundColor "Yellow"
-    $accountData = (Import-Csv -Path $FilePath)
+    $AccountData = (Import-Csv -Path $FilePath)
     Write-Host "[FILE] File import completed successfully." -ForegroundColor "Green"
+    $NumAccounts = $AccountData.Count
+    Write-Host "[ACCOUNTS] Found $NumAccounts accounts to import..." -ForegroundColor "White"
     $ids = @()
     # Grab the value from each column for each row and use it to create an account
     Foreach ($user in $accountData) {
@@ -88,6 +90,37 @@ function Import-AccountGroups {
 
     $ids
 }
+
+# ========================================================================================================================
+# Add Account Group Members
+# ========================================================================================================================
+function Add-LeAccountGroupMembers {
+    param (
+        $AccountIds
+    )
+
+    $AppTestGroupAccountId = $AccountIds[0]
+    Write-Host "[GROUPS] Attempting to add user to Application Testing group..." -ForegroundColor "Yellow"
+    Add-LeAccountGroupMember -GroupId $AccountGroupIds[0] -AccountId $AppTestGroupAccountId
+    Write-Host "[DEBUG] User with id: $AppTestGroupAccountId has been added to the Application Testing Accounts Group..." -ForegroundColor "Blue"
+    Write-Host "[GROUPS] Application Testing Account Group populated successfully..." -ForegroundColor "Green"
+
+    $LoadTestGroupAccountIds = $AccountIds[1..25]
+    Write-Host "[GROUPS] Attempting to add user to Application Testing group..." -ForegroundColor "Yellow"
+    foreach ($Id in $LoadTestGroupAccountIds.Split(" ")) {
+        Add-LeAccountGroupMember -GroupId $AccountGroupIds[1] -AccountId $Id
+        Write-Host "[DEBUG] User with id: $Id has been added to the Load Testing Accounts Group..." -ForegroundColor "Blue"
+    }
+    Write-Host "[GROUPS] Load Testing Account Group populated successfully..." -ForegroundColor "Green"
+        
+    $ContinuousTestGroupAccountId = $AccountIds[26]
+    Write-Host "[GROUPS] Attempting to add user to Continuous Testing group..." -ForegroundColor "Yellow"
+    Add-LeAccountGroupMember -GroupId $AccountGroupIds[2] -AccountId $ContinuousTestGroupAccountId
+    Write-Host "[DEBUG] User with id: $ContinuousTestGroupAccountId has been added to the Continuous Testing Accounts Group..." -ForegroundColor "Blue"
+    Write-Host "[GROUPS] Continuous Testing Account Group populated successfully..." -ForegroundColor "Green"
+    
+}
+
 
 # ========================================================================================================================
 # Create Launcher Group
@@ -208,7 +241,6 @@ function Get-LeApplicationsForTest {
         "Microsoft PowerPoint (interaction)",
         "Microsoft Word"
     )
-    $SampleAppIds = @()
     $AppsData = $AppsData | Where-Object {$SampleAppNames -ccontains $_[0]}
     $SampleAppIds = @()
     Foreach ($AppId in $AppsData) {
@@ -216,6 +248,30 @@ function Get-LeApplicationsForTest {
         $SampleAppIds += $Id
     }
     $SampleAppIds
+}
+
+function Update-LeTestWorkflows {
+    param (
+        [string]$TestIds,
+        [string]$ApplicationIds
+    )
+
+    $ApplicationTestId = $TestIds.Substring(0, 36)
+    Write-Host "[WORKFLOW] Attempting to update the Application Test workflow..." -ForegroundColor "Yellow"
+    Update-LeWorkflow -TestId $ApplicationTestId -ApplicationIds $SampleAppIds
+    Write-Host "[WORKFLOW] Application Test workflow updated..." -ForegroundColor "Green"
+
+    $LoadTestId = $TestIds.Substring(37, 36)
+    Write-Host "[WORKFLOW] Attempting to update the Load Test workflow..." -ForegroundColor "Yellow"
+    Update-LeWorkflow -TestId $LoadTestId -ApplicationIds $SampleAppIds
+    Write-Host "[WORKFLOW] Load Test workflow updated..." -ForegroundColor "Green"
+
+    $ContinuousTestId = $TestIds.Substring(74, 36)
+    Write-Host "[WORKFLOW] Attempting to update the Continuous Test workflow..." -ForegroundColor "Yellow"
+    Update-LeWorkflow -TestId $ContinuousTestId -ApplicationIds $SampleAppIds
+    Write-Host "[WORKFLOW] Continuous Test workflow updated..." -ForegroundColor "Green"
+
+    
 }
 
 # ========================================================================================================================
@@ -229,25 +285,27 @@ function Debug-Cleanup {
         $TestIds
     )
 
-    Write-Host "[CLEANUP] Attempting to remove accounts..." -ForegroundColor "Red"
+    Write-Host "[CLEANUP] Starting Account removal process..." -ForegroundColor "Red"
     Foreach ($Id in $AccountIds) {
-        Start-Sleep 0.25
+        Start-Sleep 0.125
         Remove-LeAccount $Id
+        Write-Host "[CLEANUP] Account removed..." -ForegroundColor "Red"
     }
-    Write-Host "[CLEANUP] Accounts removed..." -ForegroundColor "Red"
+    Write-Host "[CLEANUP] Account removal process complete..." -ForegroundColor "Red"
 
-    Write-Host "[CLEANUP] Attempting to remove account groups..." -ForegroundColor "Red"
+    Write-Host "[CLEANUP] Starting Account Group removal process..." -ForegroundColor "Red"
     Foreach ($Id in $AccountGroupIds) {
-        Start-Sleep 0.25
+        Start-Sleep 0.125
         Remove-LeAccountGroup $Id
+        Write-Host "[CLEANUP] Account Group removal process complete..." -ForegroundColor "Red"
     }
-    Write-Host "[CLEANUP] Account groups removed..." -ForegroundColor "Red"
+    Write-Host "[CLEANUP] Account Groups removed..." -ForegroundColor "Red"
 
-    Write-Host "[CLEANUP] Attempting to remove Launcher group..." -ForegroundColor "Red"
+    Write-Host "[CLEANUP] Starting Launcher Group removal process..." -ForegroundColor "Red"
     Remove-LeLauncherGroup -LauncherGroupId $LauncherGroupId | Out-Null
-    Write-Host "[CLEANUP] Launcher group removed..." -ForegroundColor "Red"
+    Write-Host "[CLEANUP] Launcher Group removal process complete..." -ForegroundColor "Red"
 
-    Write-Host "[CLEANUP] Attempting to remove tests..." -ForegroundColor "Red"
+    Write-Host "[CLEANUP] Starting Test removal process..." -ForegroundColor "Red"
     $TestTypes = @("Application Test", "Load Test", "Continuous Test")
     $Index = 0
     Foreach ($Test in $TestTypes) {
@@ -257,6 +315,10 @@ function Debug-Cleanup {
         Remove-LeTest -TestId $Id | Out-Null
         $Index++
     }
-    Write-Host "[CLEANUP] Tests have been removed..." -ForegroundColor "Green"
+    Write-Host "[CLEANUP] Test removal process complete......" -ForegroundColor "Red"
     
 }
+
+. .\POV\Scripts\API.ps1
+Write-Debug "The module was imported"
+
