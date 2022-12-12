@@ -61,3 +61,4 @@ In order to import your Active Directory accounts, your .csv must be in the foll
 | ...         | ...                 | ...              |
 | UserN       | Whfj983&0w2%!       | contoso.org      |
 
+_Note: Your accounts .csv can contain other columns, i.e., _

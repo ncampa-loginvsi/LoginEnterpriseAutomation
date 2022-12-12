@@ -311,7 +311,6 @@ function New-LeApplicationTest {
 }
 "@
     }
-    
 
     $Parameters = @{
         Uri         = "https://" + $global:fqdn + "/publicApi/v5/tests"
@@ -564,43 +563,6 @@ function Update-LeWorkflow {
 # ========================================================================================================================
 # Add Start time Thresholds
 # ========================================================================================================================
-function Update-LeWorkflow {
-    Param (
-        [string]$TestId,
-        [string]$ApplicationId
-    )
-
-    # this is only required for older version of PowerShell/.NET
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11
-
-    # WARNING: ignoring SSL/TLS certificate errors is a security risk
-    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = [SSLHandler]::GetSSLHandler()
-
-    $Header = @{
-        "Accept"        = "application/json"
-        "Authorization" = "Bearer $token"
-    }
-    
-    $Body = @"    
-{
-    "applicationId": "$ApplicationId",
-    "timer": true
-}
-"@
-
-    $Parameters = @{
-        Uri         = "https://" + $global:fqdn + "/publicApi/v5/tests" + "/$TestId" + "/workload"
-        Headers     = $Header
-        Method      = "POST"
-        body        = $Body
-        ContentType = "application/json"
-    }
-    
-    
-    $Parameters.body
-    $Response = Invoke-RestMethod @Parameters
-    $Response
-}
 
 
 # ========================================================================================================================

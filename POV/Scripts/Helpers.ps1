@@ -1,6 +1,11 @@
 # ========================================================================================================================
 # Write Welcome Dialogue
 # ========================================================================================================================
+
+function Get-TimeStamp {
+    return "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date) 
+}
+
 function Greet-User {
     param (
         $ConnectorType,
@@ -9,16 +14,18 @@ function Greet-User {
         $TargetResource
     )
     
-    Write-Host "[DEBUG] Tests using the $ConnectorType connector will be created..." -ForegroundColor "Cyan"
+    $Timestamp = Get-TimeStamp
+
+    Write-Host "$Timestamp [DEBUG] Tests using the $ConnectorType connector will be created..." -ForegroundColor "Cyan"
     if ($ConnectorType -eq "RDP") {
-        Write-Host "[DEBUG] Tests will be aimed at $TargetRDPHost..." -ForegroundColor "Cyan"
+        Write-Host " $Timestamp [DEBUG] Tests will be aimed at $TargetRDPHost..." -ForegroundColor "Cyan"
     }
     elseif ($ConnectorType -eq "Storefront") {
-        Write-Host "[DEBUG] Tests will be aimed at $TargetResource from the server located at $ServerUrl..." -ForegroundColor "Cyan"
+        Write-Host "$Timestamp [DEBUG] Tests will be aimed at $TargetResource from the server located at $ServerUrl..." -ForegroundColor "Cyan"
     }
-
     
 }
+
 
 # ========================================================================================================================
 # Create Accounts
@@ -28,22 +35,28 @@ function Import-LeAccounts {
         $FilePath
     )
     # Import the csv
-    Write-Host "[FILE] Attempting to import file..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [FILE] Attempting to import file..." -ForegroundColor "Yellow"
     $AccountData = (Import-Csv -Path $FilePath)
-    Write-Host "[FILE] File import completed successfully." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [FILE] File import completed successfully." -ForegroundColor "Green"
     $NumAccounts = $AccountData.Count
-    Write-Host "[ACCOUNTS] Found $NumAccounts accounts to import..." -ForegroundColor "White"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [ACCOUNTS] Found $NumAccounts accounts to import..." -ForegroundColor "White"
     $ids = @()
     # Grab the value from each column for each row and use it to create an account
     Foreach ($user in $accountData) {
         $username = $user.Username
         $password = $user.Password
         $domain = $user.Domain
-        Write-Host "[ACCOUNTS] Attempting to add user $username..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [ACCOUNTS] Attempting to add user $username..." -ForegroundColor "Yellow"
         $AccountId =  New-LeAccount -Username $username -Password $password -Domain $domain
-        Write-Host "[ACCOUNTS] User $username created successfully..." -ForegroundColor "Green"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [ACCOUNTS] User $username created successfully..." -ForegroundColor "Green"
         $Id = $AccountId."id"
-        Write-Host "[ACCOUNTS] User $username accountID: $Id..." -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [ACCOUNTS] User $username accountID: $Id..." -ForegroundColor "Blue"
         # Add new account id to list to return. This is used when adding users to account groups
         $ids += $Id
     }
@@ -59,11 +72,14 @@ function New-AccountGroup {
         $Description
     )
 
-    Write-Host "[GROUPS] Attempting to create $GroupName Group..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Attempting to create $GroupName Group..." -ForegroundColor "Yellow"
     $AccountGroupId = New-LeAccountGroup -GroupName $GroupName -Description $Description
-    Write-Host "[GROUPS] $GroupName name created successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] $GroupName name created successfully..." -ForegroundColor "Green"
     $Id = $AccountGroupId."id"
-    Write-Host "[DEBUG] $GroupName Group id: $Id..." -ForegroundColor "Blue"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [DEBUG] $GroupName Group id: $Id..." -ForegroundColor "Blue"
     $AccountGroupId
 }
 
@@ -100,24 +116,33 @@ function Add-LeAccountGroupMembers {
     )
 
     $AppTestGroupAccountId = $AccountIds[0]
-    Write-Host "[GROUPS] Attempting to add user to Application Testing group..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Attempting to add user to Application Testing group..." -ForegroundColor "Yellow"
     Add-LeAccountGroupMember -GroupId $AccountGroupIds[0] -AccountId $AppTestGroupAccountId
-    Write-Host "[DEBUG] User with id: $AppTestGroupAccountId has been added to the Application Testing Accounts Group..." -ForegroundColor "Blue"
-    Write-Host "[GROUPS] Application Testing Account Group populated successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [DEBUG] User with id: $AppTestGroupAccountId has been added to the Application Testing Accounts Group..." -ForegroundColor "Blue"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Application Testing Account Group populated successfully..." -ForegroundColor "Green"
 
     $LoadTestGroupAccountIds = $AccountIds[1..25]
-    Write-Host "[GROUPS] Attempting to add user to Application Testing group..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Attempting to add user to Application Testing group..." -ForegroundColor "Yellow"
     foreach ($Id in $LoadTestGroupAccountIds.Split(" ")) {
         Add-LeAccountGroupMember -GroupId $AccountGroupIds[1] -AccountId $Id
-        Write-Host "[DEBUG] User with id: $Id has been added to the Load Testing Accounts Group..." -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] User with id: $Id has been added to the Load Testing Accounts Group..." -ForegroundColor "Blue"
     }
-    Write-Host "[GROUPS] Load Testing Account Group populated successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Load Testing Account Group populated successfully..." -ForegroundColor "Green"
         
     $ContinuousTestGroupAccountId = $AccountIds[26]
-    Write-Host "[GROUPS] Attempting to add user to Continuous Testing group..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Attempting to add user to Continuous Testing group..." -ForegroundColor "Yellow"
     Add-LeAccountGroupMember -GroupId $AccountGroupIds[2] -AccountId $ContinuousTestGroupAccountId
-    Write-Host "[DEBUG] User with id: $ContinuousTestGroupAccountId has been added to the Continuous Testing Accounts Group..." -ForegroundColor "Blue"
-    Write-Host "[GROUPS] Continuous Testing Account Group populated successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [DEBUG] User with id: $ContinuousTestGroupAccountId has been added to the Continuous Testing Accounts Group..." -ForegroundColor "Blue"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Continuous Testing Account Group populated successfully..." -ForegroundColor "Green"
     
 }
 
@@ -130,10 +155,13 @@ function Import-LeLauncherGroup {
         $LauncherGroupName,
         $Description
     )
-    Write-Host "[GROUPS] Attempting to create $LauncherGroupName..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] Attempting to create $LauncherGroupName..." -ForegroundColor "Yellow"
     $Id = New-LeLauncherGroup -GroupName "$LauncherGroupName" -Description "$Description."
-    Write-Host "[GROUPS] $LauncherGroupName created successfully..." -ForegroundColor "Green"
-    Write-Host "[DEBUG] $LauncherGroupName id: $Id" -ForegroundColor "Blue"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [GROUPS] $LauncherGroupName created successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [DEBUG] $LauncherGroupName id: $Id" -ForegroundColor "Blue"
     $Id
 }
 
@@ -172,60 +200,79 @@ function Import-Tests {
     
     $ids = @()
     if ($ConnectorType -eq "RDP") {
-        Write-Host "[TESTS] Starting RDP Test Creation process..." -ForegroundColor "Yellow"
-        $TestName = "RDP Application Test" 
-        Write-Host "[TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] Starting RDP Test Creation process..." -ForegroundColor "Yellow"
+        $TestName = "RDP Application Test"
+        $Timestamp = Get-TimeStamp 
+        Write-Host "$Timestamp [TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
         $RDPAppTestId = New-LeApplicationTest -TestName $TestName -Description "This test will validate the performance and functionality of the workflow." -AccountGroupId $AppTestGroupId -LauncherGroupId $LauncherGroupId -ConnectorType "RDP" -TargetRDPHost $TargetRDPHost
-        Write-Host "[TESTS] $TestName test created successfully..." -ForegroundColor "Green"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] $TestName test created successfully..." -ForegroundColor "Green"
         $Id = $RDPAppTestId."id"
         $ids += $Id
-        Write-Host "[DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
 
         $TestName = "RDP Load Test"
-        Write-Host "[TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
         $RDPLoadTestId = New-LeLoadTest -TestName $TestName -Description "Baseline your virtual desktop host's performance and capacity." -AccountGroupId $LoadTestGroupId -LauncherGroupId $LauncherGroupId -ConnectorType "RDP" -TargetRDPHost $TargetRDPHost
-        Write-Host "[TESTS] $TestName test created successfully..." -ForegroundColor "Green"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] $TestName test created successfully..." -ForegroundColor "Green"
         $Id = $RDPLoadTestId."id"
         $ids += $Id
-        Write-Host "[DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
 
         $TestName = "RDP Continuous Test"
-        Write-Host "[TESTS] Start: Attempting to create $TestName..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] Start: Attempting to create $TestName..." -ForegroundColor "Yellow"
         $RDPContinuousTestId = New-LeContinuousTest -TestName $TestName -Description "Have a canary in the coalmine hunting for failure." -AccountGroupId $ContinuousTestGroupId -LauncherGroupId $LauncherGroupId -ConnectorType "RDP" -TargetRDPHost $TargetRDPHost
-        Write-Host "[TESTS] $TestName test created successfully..." -ForegroundColor "Green"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] $TestName test created successfully..." -ForegroundColor "Green"
         $Id = $RDPContinuousTestId."id"
         $ids += $Id
-        Write-Host "[DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
-        Write-Host "[TESTS] RDP Test Creation process completed successfully..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] RDP Test Creation process completed successfully..." -ForegroundColor "Yellow"
     } elseif ($ConnectorType -eq "Storefront") {
 
         $TestName = "StoreFront Application Test"
-        Write-Host "[TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
         $StoreFrontAppTestId = New-LeApplicationTest -TestName $TestName -Description "This test will validate the performance and functionality of the workflow." -AccountGroupId $AppTestGroupId -LauncherGroupId $LauncherGroupId -ConnectorType "Storefront" -ServerUrl $ServerUrl -TargetResource $TargetResource
-        Write-Host "[TESTS] $TestName test created successfully..." -ForegroundColor "Green"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] $TestName test created successfully..." -ForegroundColor "Green"
         $Id = $StoreFrontAppTestId."id"
         $ids += $Id
-        Write-Host "[DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
 
         $TestName = "StoreFront Load Test"
-        Write-Host "[TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] Attempting to create $TestName..." -ForegroundColor "Yellow"
         $StoreFrontLoadTestId = New-LeLoadTest -TestName $TestName -Description "Baseline your virtual desktop host's performance and capacity." -AccountGroupId $AppTestGroupId -LauncherGroupId $LauncherGroupId -ConnectorType "Storefront" -ServerUrl $ServerUrl -TargetResource $TargetResource
-        Write-Host "[TESTS] $TestName test created successfully..." -ForegroundColor "Green"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] $TestName test created successfully..." -ForegroundColor "Green"
         $Id = $StoreFrontLoadTestId."id"
         $ids += $Id
-        Write-Host "[DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"  
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"  
 
         $TestName = "StoreFront Continuous Test"
-        Write-Host "[TESTS] Start: Attempting to create $TestName..." -ForegroundColor "Yellow"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] Start: Attempting to create $TestName..." -ForegroundColor "Yellow"
         $StoreFrontContinuousTestId = New-LeContinuousTest -TestName $TestName -Description "Have a canary in the coalmine hunting for failure." -AccountGroupId $ContinuousTestGroupId -LauncherGroupId $LauncherGroupId -ConnectorType "Storefront" -ServerUrl $ServerUrl -TargetResource $TargetResource
-        Write-Host "[TESTS] $TestName test created successfully..." -ForegroundColor "Green"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [TESTS] $TestName test created successfully..." -ForegroundColor "Green"
         $Id = $StoreFrontContinuousTestId."id"
         $ids += $Id
-        Write-Host "[DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] $TestName id: $Id..." -ForegroundColor "Blue"
     } else {
         Write-Host "[ERROR] Connector Type: $ConnectorType is not recognized..." -ForegroundColor "Red"
     }
-
  
     $ids
 }
@@ -257,19 +304,25 @@ function Update-LeTestWorkflows {
     )
 
     $ApplicationTestId = $TestIds.Substring(0, 36)
-    Write-Host "[WORKFLOW] Attempting to update the Application Test workflow..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Attempting to update the Application Test workflow..." -ForegroundColor "Yellow"
     Update-LeWorkflow -TestId $ApplicationTestId -ApplicationIds $SampleAppIds | Out-Null
-    Write-Host "[WORKFLOW] Application Test workflow updated..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Application Test workflow updated..." -ForegroundColor "Green"
 
     $LoadTestId = $TestIds.Substring(37, 36)
-    Write-Host "[WORKFLOW] Attempting to update the Load Test workflow..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Attempting to update the Load Test workflow..." -ForegroundColor "Yellow"
     Update-LeWorkflow -TestId $LoadTestId -ApplicationIds $SampleAppIds | Out-Null
-    Write-Host "[WORKFLOW] Load Test workflow updated..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Load Test workflow updated..." -ForegroundColor "Green"
 
     $ContinuousTestId = $TestIds.Substring(74, 36)
-    Write-Host "[WORKFLOW] Attempting to update the Continuous Test workflow..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Attempting to update the Continuous Test workflow..." -ForegroundColor "Yellow"
     Update-LeWorkflow -TestId $ContinuousTestId -ApplicationIds $SampleAppIds | Out-Null
-    Write-Host "[WORKFLOW] Continuous Test workflow updated..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Continuous Test workflow updated..." -ForegroundColor "Green"
 }
 
 function Import-LeWorkflowUpdates {
@@ -277,14 +330,18 @@ function Import-LeWorkflowUpdates {
         $TestIds
     )
     # Collect Ids for sample out-of-box Applications
-    Write-Host "[WORKFLOW] Attempting to collect sample application Ids..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Attempting to collect sample application Ids..." -ForegroundColor "Yellow"
     $SampleAppIds = Get-LeApplicationsForTest
-    Write-Host "[WORKFLOW] Sample application Ids collected successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Sample application Ids collected successfully..." -ForegroundColor "Green"
 
     # Add workflow to tests
-    Write-Host "[WORKFLOW] Attempting to update Test Workflows..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Attempting to update Test Workflows..." -ForegroundColor "Yellow"
     Update-LeTestWorkflows -TestIds $TestIds -ApplicationIds $SampleAppIds
-    Write-Host "[WORKFLOW] Test Workflows updated successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [WORKFLOW] Test Workflows updated successfully..." -ForegroundColor "Green"
 }
 
 function Add-LeSLAReports {
@@ -293,13 +350,17 @@ function Add-LeSLAReports {
     )
 
     $ContinuousTestId = $TestIds[2]
-    Write-Host "[REPORTS] Attempting to add Daily SLA Report..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [REPORTS] Attempting to add Daily SLA Report..." -ForegroundColor "Yellow"
     New-LeSLAReport -TestId $ContinuousTestId -Frequency "daily" | Out-Null
-    Write-Host "[REPORTS] Daily SLA Report has been added successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [REPORTS] Daily SLA Report has been added successfully..." -ForegroundColor "Green"
 
-    Write-Host "[REPORTS] Attempting to add Weekly SLA Report..." -ForegroundColor "Yellow"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [REPORTS] Attempting to add Weekly SLA Report..." -ForegroundColor "Yellow"
     New-LeSLAReport -TestId $ContinuousTestId -Frequency "weekly" | Out-Null
-    Write-Host "[REPORTS] Weekly SLA Report has been added successfully..." -ForegroundColor "Green"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [REPORTS] Weekly SLA Report has been added successfully..." -ForegroundColor "Green"
     
 }
 
@@ -316,42 +377,47 @@ function Debug-Cleanup {
         $TestIds
     )
 
-    Write-Host "[CLEANUP] Starting Account removal process..." -ForegroundColor "Red"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Starting Account removal process..." -ForegroundColor "Red"
     Foreach ($Id in $AccountIds) {
         Start-Sleep 0.125
         Remove-LeAccount $Id
-        Write-Host "[CLEANUP] Account removed..." -ForegroundColor "Red"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [CLEANUP] Account removed..." -ForegroundColor "Red"
     }
-    Write-Host "[CLEANUP] Account removal process complete..." -ForegroundColor "Red"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Account removal process complete..." -ForegroundColor "Red"
 
-    Write-Host "[CLEANUP] Starting Account Group removal process..." -ForegroundColor "Red"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Starting Account Group removal process..." -ForegroundColor "Red"
     Foreach ($Id in $AccountGroupIds) {
         Start-Sleep 0.125
         Remove-LeAccountGroup $Id
-        Write-Host "[CLEANUP] Account Group removal process complete..." -ForegroundColor "Red"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [CLEANUP] Account Group removal process complete..." -ForegroundColor "Red"
     }
-    Write-Host "[CLEANUP] Account Groups removed..." -ForegroundColor "Red"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Account Groups removed..." -ForegroundColor "Red"
 
-    Write-Host "[CLEANUP] Starting Launcher Group removal process..." -ForegroundColor "Red"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Starting Launcher Group removal process..." -ForegroundColor "Red"
     Remove-LeLauncherGroup -LauncherGroupId $LauncherGroupId | Out-Null
-    Write-Host "[CLEANUP] Launcher Group removal process complete..." -ForegroundColor "Red"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Launcher Group removal process complete..." -ForegroundColor "Red"
 
-    Write-Host "[CLEANUP] Starting Test removal process..." -ForegroundColor "Red"
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Starting Test removal process..." -ForegroundColor "Red"
     $TestTypes = @("Application Test", "Load Test", "Continuous Test")
     $Index = 0
     Foreach ($Test in $TestTypes) {
         $Id = $TestIds[$Index]
         $Type = $TestTypes[$Index]
-        Write-Host "[DEBUG] Attempting to remove $Type id: $Id" -ForegroundColor "Blue"
+        $Timestamp = Get-TimeStamp
+        Write-Host "$Timestamp [DEBUG] Attempting to remove $Type id: $Id" -ForegroundColor "Blue"
         Remove-LeTest -TestId $Id | Out-Null
         $Index++
     }
-    Write-Host "[CLEANUP] Test removal process complete......" -ForegroundColor "Red"
-    
+    $Timestamp = Get-TimeStamp
+    Write-Host "$Timestamp [CLEANUP] Test removal process complete......" -ForegroundColor "Red"
 }
-
-. .\POV\Scripts\API.ps1
-Write-Debug "The module was imported"
-
-#Add-LeSLAReports -TestIds "b4c4b07d-789b-49ad-acc3-f10b007f7725"
 
