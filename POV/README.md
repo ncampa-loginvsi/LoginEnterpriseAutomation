@@ -26,7 +26,7 @@ As of 12/9/2022 it only supports RDP and Storefront connectors.
     * Load Testing
     * Continuous Testing
 * Create All Launchers Group
-    * _Note: This will likely be redundant in 4.10, as new installations come pre-canned with All Launchers Launcher Group._
+    * _Note: This will likely be redundant in 4.10, as new installations come pre-canned with All Launchers Launcher Group_
 * Create Tests
     * Application Test
         * Assign Application Testing Account Group
@@ -41,6 +41,7 @@ As of 12/9/2022 it only supports RDP and Storefront connectors.
         * Assign All Launchers Group
         * Configure Specified Connector
 * Update Workflows:
+    * _Note: This will be updated for 4.10, as new installations come pre-canned with Knowledge Worker workflows_
     * Add Out-of-box applications to Application Test
     * Add Out-of-box applications to Load Test
     * Add Out-of-box applications to Continuous Test
