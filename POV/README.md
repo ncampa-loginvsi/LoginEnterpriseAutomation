@@ -40,6 +40,13 @@ As of 12/9/2022 it only supports RDP and Storefront connectors.
         * Assign Continuous Testing Account Group
         * Assign All Launchers Group
         * Configure Specified Connector
+* Update Workflows:
+    * Add Out-of-box applications to Application Test
+    * Add Out-of-box applications to Load Test
+    * Add Out-of-box applications to Continuous Test
+* Add SLA Reports:
+    * Add Daily SLA Report 
+    * Add Weekly SLA Report
 * If in Debug mode:
     * Delete all resources created above
 
