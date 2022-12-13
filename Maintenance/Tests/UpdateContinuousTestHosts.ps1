@@ -1,12 +1,12 @@
 Param(
-    $fqdn = "YOUR_FQDN",
-    $token = "YOUR_CONFIGURATION_LEVEL_TOKEN",
-    $testId = "YOUR_TEST_ID_TO_CHANGE",
-    $hostsToAdd = @("HOST_TO_ADD_1", "HOST_TO_ADD_2", "HOST_TO_ADD_100")
+    $Fqdn = "YOUR_FQDN",
+    $Token = "YOUR_CONFIGURATION_LEVEL_TOKEN",
+    $TestId = "YOUR_TEST_ID_TO_CHANGE",
+    $PathToCsv = "YOUR_PATH_TO_HOSTLIST_CSV"
 )
 
-$global:fqdn = $fqdn
-$global:token = $token 
+$global:Fqdn = $Fqdn
+$global:Token = $Token 
 
 $code = @"
 public class SSLHandler
@@ -19,8 +19,8 @@ Add-Type -TypeDefinition $code
 # Query for existing accounts
 function Get-LeTest {
     Param (
-        [string]$testId,
-        [string]$include = "environment"
+        [string]$TestId,
+        [string]$Include = "environment"
     )
 
     # this is only required for older version of PowerShell/.NET
@@ -31,16 +31,16 @@ function Get-LeTest {
 
     $Header = @{
         "Accept"        = "application/json"
-        "Authorization" = "Bearer $global:token"
+        "Authorization" = "Bearer $global:Token"
     }
 
     $Body = @{
-        testId    = $testId
-        include   = $include 
+        testId    = $TestId
+        include   = $Include 
     } 
 
     $Parameters = @{
-        Uri         = 'https://' + $global:fqdn + '/publicApi/v5/tests' + "/$testId"
+        Uri         = 'https://' + $global:Fqdn + '/publicApi/v5/tests' + "/$TestId"
         Headers     = $Header
         Method      = 'GET'
         body        = $Body
@@ -53,7 +53,7 @@ function Get-LeTest {
 
 function Update-LeTest {
     Param (
-        [string]$testId,
+        [string]$TestId,
         [string]$body
     )
 
@@ -65,11 +65,11 @@ function Update-LeTest {
 
     $Header = @{
         "Accept"        = "application/json"
-        "Authorization" = "Bearer $global:token"
+        "Authorization" = "Bearer $global:Token"
     }
 
     $Parameters = @{
-        Uri         = 'https://' + $global:fqdn + '/publicApi/v5/tests' + "/$testId"
+        Uri         = 'https://' + $global:Fqdn + '/publicApi/v5/tests' + "/$TestId"
         Headers     = $Header
         Method      = 'PUT'
         body        = $body
@@ -81,40 +81,49 @@ function Update-LeTest {
 }
 
 # Get current state json configuration of test to modify
-$responseBody = Get-LeTest -testId $testId
-# $responseBody.environment.connector.hostList
+Write-Host "Attempting to collect current configuration for test with TestId: $TestId..."
+$ResponseBody = Get-LeTest -TestId $TestId
+Write-Host "Collected test configuration for test..."
+# $ResponseBody.environment.connector.hostList
 
 # Create Request Body by pulling all of the unchanged properties directly from the response body
-$requestBody = New-Object -TypeName PSObject
-$requestBody | Add-Member -MemberType NoteProperty -Name "type" -Value $responseBody.type
-$requestBody | Add-Member -MemberType NoteProperty -Name "scheduleType" -Value $responseBody.scheduleType
-$requestBody | Add-Member -MemberType NoteProperty -Name "intervalInMinutes" -Value $responseBody.scheduleIntervalInMinutes
-$requestBody | Add-Member -MemberType NoteProperty -Name "numberOfSessions" -Value $responseBody.numberOfSessions
-$requestBody | Add-Member -MemberType NoteProperty -Name "enableCustomScreenshots" -Value $responseBody.enableCustomScreenshots
-$requestBody | Add-Member -MemberType NoteProperty -Name "repeatCount" -Value $responseBody.repeatCount
-$requestBody | Add-Member -MemberType NoteProperty -Name "isRepeatEnabled" -Value $responseBody.isRepeatEnabled
-$requestBody | Add-Member -MemberType NoteProperty -Name "isEnabled" -Value $responseBody.isEnabled
-$requestBody | Add-Member -MemberType NoteProperty -Name "restartOnComplete" -Value $responseBody.restartOnComplete
-$requestBody | Add-Member -MemberType NoteProperty -Name "name" -Value $responseBody.name
-$requestBody | Add-Member -MemberType NoteProperty -Name "description" -Value $responseBody.description
-$requestBody | Add-Member -MemberType NoteProperty -Name "environmentUpdate" -Value $responseBody.environment
-
+Write-Host "Building request body..."
+$RequestBody = New-Object -TypeName PSObject
+$RequestBody | Add-Member -MemberType NoteProperty -Name "type" -Value $ResponseBody.type
+$RequestBody | Add-Member -MemberType NoteProperty -Name "scheduleType" -Value $ResponseBody.scheduleType
+$RequestBody | Add-Member -MemberType NoteProperty -Name "intervalInMinutes" -Value $ResponseBody.scheduleIntervalInMinutes
+$RequestBody | Add-Member -MemberType NoteProperty -Name "numberOfSessions" -Value $ResponseBody.numberOfSessions
+$RequestBody | Add-Member -MemberType NoteProperty -Name "enableCustomScreenshots" -Value $ResponseBody.enableCustomScreenshots
+$RequestBody | Add-Member -MemberType NoteProperty -Name "repeatCount" -Value $ResponseBody.repeatCount
+$RequestBody | Add-Member -MemberType NoteProperty -Name "isRepeatEnabled" -Value $ResponseBody.isRepeatEnabled
+$RequestBody | Add-Member -MemberType NoteProperty -Name "isEnabled" -Value $ResponseBody.isEnabled
+$RequestBody | Add-Member -MemberType NoteProperty -Name "restartOnComplete" -Value $ResponseBody.restartOnComplete
+$RequestBody | Add-Member -MemberType NoteProperty -Name "name" -Value $ResponseBody.name
+$RequestBody | Add-Member -MemberType NoteProperty -Name "description" -Value $ResponseBody.description
+$RequestBody | Add-Member -MemberType NoteProperty -Name "environmentUpdate" -Value $ResponseBody.environment
 
 # For each RDP host to add to environment, create a new object and append to the original list
-for ($i = 0; $i -lt $hostsToAdd.Length; $i++) {
-    $newRow = New-Object -TypeName PSObject
-    $newRow | Add-Member -MemberType NoteProperty -Name "enabled" -Value "True"
-    $newRow | Add-Member -MemberType NoteProperty -Name "endpoint" -Value $hostsToAdd[$i]
-    $requestBody.environmentUpdate.connector.hostList += $newRow
+Write-Host "Adding hosts to request body..."
+$HostList = (Import-Csv -Path $PathToCsv)
+
+Foreach ($Row in $HostList) {
+    $Target = $Row.Target
+    $NewRow = New-Object -TypeName PSObject
+    $NewRow | Add-Member -MemberType NoteProperty -Name "enabled" -Value "True"
+    $NewRow | Add-Member -MemberType NoteProperty -Name "endpoint" -Value $Target
+    $RequestBody.environmentUpdate.connector.hostList += $NewRow
+    Write-Host "Target $Target added to request body hostList ..." 
 }
 
 # Remove unchanged properties from request object
-$requestBody.environmentUpdate.PSObject.properties.remove('launcherGroups')
-$requestBody.environmentUpdate.PSObject.properties.remove('accountGroups')
+Write-Host "Removing unchanged test configuration elements..."
+$RequestBody.environmentUpdate.PSObject.properties.remove('launcherGroups')
+$RequestBody.environmentUpdate.PSObject.properties.remove('accountGroups')
 
 # Convert object to json for PUT request
-$requestBody = $requestBody | ConvertTo-Json -Depth 8
+$RequestBody = $RequestBody | ConvertTo-Json -Depth 8
+Write-Host "Request body built..."
  
 # Update test to modify with updated request body
-Update-LeTest -testId $testId -body $requestBody
-Write-Host "Test with ID $testId has been successfully updated with your provided list of hosts."
+Update-LeTest -TestId $TestId -Body $RequestBody | Out-Null
+Write-Host "Test with ID $TestId has been successfully updated with your provided list of hosts."
