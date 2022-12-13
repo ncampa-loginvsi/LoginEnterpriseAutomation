@@ -24,9 +24,9 @@ The CSV must have the following three columns, exactly as shown. If there is not
 
 | Username    | Password            | Domain           | 
 | ----------- | ------------------- |------------------|
-| User1       | User1Password       | contoso.org      |
+| User1       | Ajd342@8o$4#!       | contoso.org      |
 | ...         | ...                 | ...              |
-| UserN       | UserNPassword       | contoso.org      |
+| UserN       | Whfj983&0w2%!       | contoso.org      |
 
 
 > Note: The CSV may have other columns. However, the "Username", "Password", and "Domain" columns MUST exist, and be titled as shown above. Please see /Maintenance/Resources/Accounts.csv for example input.
