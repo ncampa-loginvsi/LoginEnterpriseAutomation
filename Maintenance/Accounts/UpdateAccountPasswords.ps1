@@ -9,16 +9,16 @@ Param(
     $Count = "1000"
 )
 
-$global:fqdn = $fqdn
-$global:token = $token 
+$global:fqdn = $Fqdn
+$global:token = $Token 
 
-$code = @"
+$Code = @"
 public class SSLHandler
 {public static System.Net.Security.RemoteCertificateValidationCallback GetSSLHandler()
     {return new System.Net.Security.RemoteCertificateValidationCallback((sender, certificate, chain, policyErrors) => { return true; });}
 }
 "@
-Add-Type -TypeDefinition $code
+Add-Type -TypeDefinition $Code
 
 # Query for existing accounts
 function Get-LeAccounts {
@@ -48,7 +48,7 @@ function Get-LeAccounts {
     } 
 
     $Parameters = @{
-        Uri         = "https://" + $global:fqdn + "/publicApi/v5/accounts"
+        Uri         = "https://" + $global:Fqdn + "/publicApi/v5/accounts"
         Headers     = $Header
         Method      = "GET"
         body        = $Body
@@ -76,7 +76,7 @@ function Set-LeAccount {
 
     $Header = @{
         "Accept"        = "application/json"
-        "Authorization" = "Bearer $global:token"
+        "Authorization" = "Bearer $global:Token"
     }
 
     $Body = @{
@@ -86,7 +86,7 @@ function Set-LeAccount {
     } | ConvertTo-Json
 
     $Parameters = @{
-        Uri         = "https://" + $global:fqdn + "/publicApi/v5/accounts" + "/$AccountId"
+        Uri         = "https://" + $global:Fqdn + "/publicApi/v5/accounts" + "/$AccountId"
         Headers     = $Header
         Method      = "PUT"
         body        = $Body
