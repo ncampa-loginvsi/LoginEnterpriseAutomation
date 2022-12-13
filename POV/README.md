@@ -61,4 +61,4 @@ In order to import your Active Directory accounts, your .csv must be in the foll
 | ...         | ...                 | ...              |
 | UserN       | Whfj983&0w2%!       | contoso.org      |
 
-_Note: Your accounts .csv can contain other columns, i.e., _
+> Note: The CSV may have other columns. However, the "Username", "Password", and "Domain" columns MUST exist, and be titled as shown above. Please see /POV/Resources/Accounts.csv for example input.
