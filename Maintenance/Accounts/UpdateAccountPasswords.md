@@ -28,4 +28,7 @@ The CSV must have the following three columns, exactly as shown. If there is not
 | ...         | ...                 | ...              |
 | UserN       | UserNPassword       | contoso.org      |
 
-**_Note: The CSV may have other columns. However, the "Username", "Password", and "Domain" columns MUST exist, and be titled as shown above. Please see /Maintenance/Resources/Accounts.csv for example input._**
+-----------------------
+Note: The CSV may have other columns. However, the "Username", "Password", and "Domain" columns MUST exist, and be titled as shown above. Please see /Maintenance/Resources/Accounts.csv for example input.
+
+-----------------------
