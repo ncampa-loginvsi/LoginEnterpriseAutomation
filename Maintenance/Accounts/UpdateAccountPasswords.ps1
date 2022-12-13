@@ -122,4 +122,5 @@ Foreach ($Row in $AccountList) {
     Write-Host "Making changes for $Username@$Domain with accountId: $AccountId..."
     Set-LeAccount -AccountId $AccountId -Username $Username -Password $Password -Domain $Domain
     Write-Host "Successfully changed account configuration for $Username@$Domain..."
+
 }
