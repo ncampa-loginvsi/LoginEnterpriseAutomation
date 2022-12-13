@@ -20,7 +20,7 @@ This script can be used to edit account passwords after creating them in bulk. Y
 * ```PathToCSV```: The filepath to a CSV file containing test user account information
 * ```Count```: The number of accounts to query (only requred if there are more than 1000 accounts in the Login Enterprise appliance)
 
-The CSV must have the following three columns, exactly as shown. If there is not an account with the exact username/ domain combination, it will return error 405. 
+The CSV must have the following three columns, exactly as shown. If there is not an account with the exact username/ domain combination, you will receive a 405 status code error. 
 
 | Username    | Password            | Domain           | 
 | ----------- | ------------------- |------------------|
@@ -30,3 +30,13 @@ The CSV must have the following three columns, exactly as shown. If there is not
 
 
 > Note: The CSV may have other columns. However, the "Username", "Password", and "Domain" columns MUST exist, and be titled as shown above. Please see /Maintenance/Resources/Accounts.csv for example input.
+
+#### Password Requirements
+
+The script is dependent on the API, and through testing, the following special characters have been deemed allowed:
+* ~!@#$%^&*_-+=`|\(){}[]:;'<>.?/
+
+The script, because of our API request body requirements, cannot contain the following special characters:
+* ",
+
+> If the script contains any disallowed special characters, you will receive a 405 status code error.
