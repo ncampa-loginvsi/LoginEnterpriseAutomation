@@ -4,7 +4,7 @@ This script can be used to edit account passwords after creating them in bulk. Y
 
 ### Example usage:
 ```
-.\UpdateAccountPasswords.ps1 -Fqdn "demolab.loginvsi.com" -Token "YOUR_SECRET_TOKEN" -PathToCsv ".\LoginEnterpriseAutomation\Accounts\Resources\Accounts.csv" -Count "1000"
+.\UpdateAccountPasswords.ps1 -Fqdn "YOUR_FQDN" -Token "YOUR_SECRET_TOKEN" -PathToCsv ".\LoginEnterpriseAutomation\Accounts\Resources\Accounts.csv" -Count "1000"
 ```
 
 ### Algorithm:
