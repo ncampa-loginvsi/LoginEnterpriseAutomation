@@ -3,9 +3,9 @@
 # token: the token generated from the appliance (requires Configuration level access)
 # pathToCsv: the path to the csv file containing user information in the format Username, Password
 Param(
-    [Parameter(Mandatory=$true)]$fqdn,
-    [Parameter(Mandatory=$true)]$token,
-    [Parameter(Mandatory=$true)]$pathToCsv,
+    [Parameter(Mandatory=$true)]$Fqdn,
+    [Parameter(Mandatory=$true)]$Token,
+    [Parameter(Mandatory=$true)]$PathToCsv,
     $Count = "1000"
 )
 
@@ -23,7 +23,7 @@ Add-Type -TypeDefinition $code
 # Query for existing accounts
 function Get-LeAccounts {
     Param (
-        [string]$orderBy = "username",
+        [string]$OrderBy = "username",
         [string]$Direction = "asc",
         [string]$Count = $Count,
         [string]$Include = "none"
@@ -41,7 +41,7 @@ function Get-LeAccounts {
     }
 
     $Body = @{
-        orderBy   = $orderBy
+        orderBy   = $OrderBy
         direction = $Direction
         count     = $Count
         include   = $Include 
@@ -62,10 +62,10 @@ function Get-LeAccounts {
 # Set configuration of account by account Id
 function Set-LeAccount {
     Param (
-        [string]$accountId,
-        [string]$password,
-        [string]$username,
-        [string]$domain
+        [string]$AccountId,
+        [string]$Username,
+        [string]$Password,
+        [string]$Domain
     )
 
     # this is only required for older version of PowerShell/.NET
@@ -80,13 +80,13 @@ function Set-LeAccount {
     }
 
     $Body = @{
-        password = $password
-        username = $username
-        domain = $domain
+        username = $Username
+        password = $Password
+        domain = $Domain
     } | ConvertTo-Json
 
     $Parameters = @{
-        Uri         = "https://" + $global:fqdn + "/publicApi/v5/accounts" + "/$accountId"
+        Uri         = "https://" + $global:fqdn + "/publicApi/v5/accounts" + "/$AccountId"
         Headers     = $Header
         Method      = "PUT"
         body        = $Body
@@ -98,24 +98,28 @@ function Set-LeAccount {
 }
 
 # Import spreadsheet containing user profile specifications in Username, Password format
-$AccountList = (Import-Csv -Path $pathToCsv)
-$NumAccounts = $accountlist.Count
+$AccountList = (Import-Csv -Path $PathToCsv)
+$NumAccounts = $AccountList.Count
 Write-Host "Collected $NumAccounts accounts to modify. Starting Account update process now..."
 
 # For every row in the dataset
-Foreach ($row in $accountlist) {
+Foreach ($Row in $AccountList) {
+
     # Grab their username and password
-    $Username = $row.Username 
-    $Password = $row.Password
-    $Domain = $row.Domain
-    Write-Host "Beginning Account update process for: $Username@$Domain..."
+    $Username = $Row.Username 
+    $Password = $Row.Password
+    $Domain = $Row.Domain
+
     # Only return the appliance account that matches the domain/user combination (remove domain check to only match username)
+    Write-Host "Beginning Account update process for: $Username@$Domain..."
     $Account = Get-LeAccounts -Count $Count | Where-Object {($_.username -eq $Username) -and ($_.domain -eq $Domain)}
     Write-Host "Got account details for $Username@$Domain..."
-    # Grab the row"s accountId
+
+    # Grab the user in that rows accountId
     $AccountId = $Account.id
+    
     # Reconfigure the account using password from dataset
     Write-Host "Making changes for $Username@$Domain with accountId: $AccountId..."
-    Set-LeAccount -accountId $AccountId -username $Username -password $Password -domain $Domain
+    Set-LeAccount -AccountId $AccountId -Username $Username -Password $Password -Domain $Domain
     Write-Host "Successfully changed account configuration for $Username@$Domain..."
 }
